@@ -58,5 +58,22 @@ class List(unittest.TestCase):
   def test_long(self):
     return self.perform(long, long_content)
 
+class Extract(unittest.TestCase):
+
+  def perform(self, path, content):
+    with ArchiveCopy(path) as archive, TemporaryDirectory() as dest:
+      files = dict(content)
+      archive.extract(dest)
+      for path in os.listdir(dest):
+        self.assertTrue(path in files)
+        del files[path]
+      self.assertEqual(len(files), 0)
+
+  def test_simple(self):
+    return self.perform(simple, simple_content)
+
+  def test_long(self):
+    return self.perform(long, long_content)
+
 if __name__ == '__main__':
     unittest.main()

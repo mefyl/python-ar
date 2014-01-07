@@ -119,6 +119,10 @@ class Archive:
     for h in self.__headers:
       yield h
 
+  def extract(self, destination):
+    for header in self.headers:
+      header.extract(destination)
+
 if __name__ == '__main__':
   import optparse
   usage = "usage: %prog mode [options] file"
