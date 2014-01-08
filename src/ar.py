@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import shutil
 
 class SaveFileSeek:
 
@@ -80,11 +81,7 @@ class Archive:
 
     def extract(self, destination):
       with self.open() as src, open('%s/%s' % (destination, self.name), 'wb') as dst:
-        while True:
-          buffer = src.read(4096)
-          if len(buffer) == 0:
-            break
-          dst.write(buffer)
+        shutil.copyfileobj(src, dst)
 
     @property
     def name(self):
