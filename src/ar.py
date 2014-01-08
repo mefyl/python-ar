@@ -27,6 +27,28 @@ def _read_int(source, size):
 
 class Archive:
 
+  class File:
+
+    def __init__(self, header):
+      self.__header = header
+      self.__source = header._Header__archive._Archive__source
+      self.__source.seek(header.offset)
+      self.__read = 0
+
+    def __enter__(self):
+      return self
+
+    def __exit__(self, type, value, backtrace):
+      pass
+
+    def read(self, size):
+      left = self.__header.size - self.__read
+      if left == 0:
+        return b''
+      res = self.__source.read(min(size, left))
+      self.__read += len(res)
+      return res
+
   class Header:
 
     def __init__(self, archive, source):
@@ -57,15 +79,12 @@ class Archive:
       self.__offset = source.tell()
 
     def extract(self, destination):
-      source = self.__archive._Archive__source
-      source.seek(self.offset)
-      size = self.size
-
-      with open('%s/%s' % (destination, self.name), 'wb') as dest:
-        while size > 0:
-          buffer = source.read(min(4096, size))
-          dest.write(buffer)
-          size -= len(buffer)
+      with self.open() as src, open('%s/%s' % (destination, self.name), 'wb') as dst:
+        while True:
+          buffer = src.read(4096)
+          if len(buffer) == 0:
+            break
+          dst.write(buffer)
 
     @property
     def name(self):
@@ -82,6 +101,9 @@ class Archive:
     @property
     def offset(self):
       return self.__offset
+
+    def open(self):
+      return Archive.File(self)
 
   def __init__(self, source):
     if isinstance(source, str):
